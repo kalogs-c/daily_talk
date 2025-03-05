@@ -25,8 +25,8 @@ defmodule DailyTalkWeb.ChatLive.Components.MessageForm do
           autocomplete="off"
           phx-keydown={show_modal("edit_message")}
           phx-key="ArrowUp"
+          phx-focus="unpin_scrollbar_from_top"
           field={@form[:content]}
-          type="text"
         />
         <:actions>
           <.button>send</.button>

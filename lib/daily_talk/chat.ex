@@ -4,6 +4,7 @@ defmodule DailyTalk.Chat do
   """
 
   import Ecto.Query, warn: false
+  alias DailyTalkWeb.Endpoint
   alias DailyTalk.Repo
 
   alias DailyTalk.Chat.Room
@@ -149,6 +150,11 @@ defmodule DailyTalk.Chat do
     %Message{}
     |> Message.changeset(attrs)
     |> Repo.insert()
+    |> notify_message_created()
+  end
+
+  defp notify_message_created({:ok, message}) do
+    Endpoint.broadcast("room:#{message.room_id}", "new_message", message)
   end
 
   @doc """
@@ -209,6 +215,16 @@ defmodule DailyTalk.Chat do
   """
   def last_messages_for_room(room_id, limit \\ 10) do
     Message.Query.for_room(room_id, limit)
+    |> Repo.all()
+    |> Repo.preload(:sender)
+  end
+
+  def preload_message_sender(message) do
+    Repo.preload(message, :sender)
+  end
+
+  def list_previous_messages(message_id, amount) do
+    Message.Query.previous_n(message_id, amount)
     |> Repo.all()
     |> Repo.preload(:sender)
   end

@@ -2,6 +2,7 @@ defmodule DailyTalkWeb.ChatLive.Index do
   use DailyTalkWeb, :live_view
   alias DailyTalk.Chat
   alias DailyTalkWeb.Endpoint
+  alias DailyTalkWeb.ChatLive.Components.Messages
   alias DailyTalkWeb.ChatLive.Components.MessageForm
 
   @impl true
@@ -40,5 +41,41 @@ defmodule DailyTalkWeb.ChatLive.Index do
     socket
     |> stream(:messages, messages)
     |> assign(:oldest_message_id, oldest_message && oldest_message.id)
+  end
+
+  defp assign_last_user_message(%{assigns: %{current_user: current_user}} = socket, message)
+       when current_user.id == message.sender_id do
+    assign(socket, message: message)
+  end
+
+  defp assign_last_user_message(socket, _message), do: socket
+
+  @impl true
+  def handle_info(%{event: "new_message", payload: %{message: message}}, socket) do
+    socket =
+      socket
+      |> stream_insert(:messages, Chat.preload_message_sender(message), at: -1)
+      |> assign_last_user_message(message)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("unpin_scrollbar_from_top", _params, socket) do
+    {:noreply, assign(socket, scrolled_to_top: false)}
+  end
+
+  @impl true
+  def handle_event("load_more", _params, socket) do
+    messages = Chat.list_previous_messages(socket.assigns.oldest_message_id, 5)
+    oldest_message = List.last(messages)
+
+    socket =
+      socket
+      |> stream_batch_insert(:messages, messages, at: 0)
+      |> assign(:oldest_message_id, oldest_message && oldest_message.id)
+      |> assign(:scrolled_to_top, true)
+
+    {:noreply, socket}
   end
 end

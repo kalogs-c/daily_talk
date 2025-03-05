@@ -55,6 +55,12 @@ defmodule DailyTalkWeb do
       use Phoenix.LiveView,
         layout: {DailyTalkWeb.Layouts, :app}
 
+      def stream_batch_insert(socket, key, items, opts \\ %{}) do
+        Enum.reduce(items, socket, fn item, socket ->
+          stream_insert(socket, key, item, opts)
+        end)
+      end
+
       unquote(html_helpers())
     end
   end

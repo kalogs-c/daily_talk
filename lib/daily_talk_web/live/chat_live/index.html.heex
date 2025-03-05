@@ -1,5 +1,5 @@
-<div :if={@live_action == :show} id={"room-#{@room.id}"}>
-  <%!-- <Messages.list_messages messages={@messages} scrolled_to_top={@scrolled_to_top} /> --%>
+<div :if={@live_action == :show} id={"room-#{@room.id}"} class="p-4 sm:ml-64">
+  <Messages.list_messages messages={@streams.messages} scrolled_to_top={@scrolled_to_top} />
   <.live_component
     module={MessageForm}
     room_id={@room.id}
@@ -7,4 +7,3 @@
     id={"room-#{@room.id}-message-form"}
   />
 </div>
-
